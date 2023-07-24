@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Utility</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"
+        integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+
+    <style>
+        #map {
+            height: 800px;
+            width: inherit;
+        }
+    </style>
+    <div id="map"></div>
+    <div id="layerPanel"></div>
+</head>
+
+<body>
+
+    <script type="text/javascript">
+        let nyc = new L.LatLng(40.75042, -73.98928);
+        let map = L.map('map').setView(nyc, 10);
+        let esriUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/{style}/MapServer/tile/{z}/{y}/{x}';
+        // Specify the Esri style name
+        let styleName = 'World_Topo_Map';
+
+        // Create the tile layer using the Esri URL
+        L.tileLayer(esriUrl, {
+            maxZoom: 18,
+            attribution: 'Tiles &copy; Esri',
+            style: styleName
+        }).addTo(map);
+
+        let boroughUrl = 'https://data.cityofnewyork.us/resource/7t3b-ywvw.json';
+        let neighborhoodUrl = 'https://data.cityofnewyork.us/resource/q2z5-ai38.json';
+
+        addBoroughsToMap = (boroughGeom) => {
+            boroughGeom.features.forEach(feature => {
+                let layer = L.geoJson(feature.the_geom);
+                layer.addTo(map);
+
+            })
+        }
+
+        let finalData = {};
+
+        parseNeighborhoodData = (neighborhoodData) => {
+            let parsedHoods = {};
+
+            neighborhoodData.features.forEach(feature => {
+                let boroName = feature.boro_name;
+                let neighborhoodName = feature.ntaname;
+                let geometry = feature.the_geom;
+                let layer = L.geoJson(geometry)
+                // create the boro key for each boro
+                // add properties to each boro
+                if (!parsedHoods[boroName]) {
+                    parsedHoods[boroName] = {
+                        name: boroName,
+                        neighborhoods: [],
+                        layerGroup: L.layerGroup()
+                    }
+
+                }
+                // add elements to neighborhoods properties
+                parsedHoods[boroName].neighborhoods.push(
+                    {
+                        boroName: boroName,
+                        neighborhoodName: neighborhoodName,
+                        geometry: geometry,
+                        layer: layer
+                    }
+                );
+
+                parsedHoods[boroName].layerGroup.addLayer(layer); // Add neighborhood layers to each boro's layer group
+            })
+            finalData = parsedHoods;
+            return parsedHoods;
+        }
+
+        createLegend = (neighborhoodData) => {
+            let controlLayers = {};
+           
+            Object.values(neighborhoodData).forEach(boro => {
+                let layerName = boro.name;
+                // add each boro layer group to the map (aka entire manhattan layer would be added here...)
+                let groupLayer = boro.layerGroup;
+                groupLayer.addTo(map);
+                controlLayers[layerName] = groupLayer;
+                // add each neighborhood layer to the map (aka chelsea layer would be added here...)
+                boro.neighborhoods.forEach(neighborhood => {
+                let neighborhoodName = neighborhood.neighborhoodName;
+                let neighborhoodLayer = neighborhood.layer;
+                controlLayers[neighborhoodName] = neighborhoodLayer;
+                });
+
+
+            })
+
+
+            L.control.layers(null, controlLayers).addTo(map);
+
+        }
+
+        // let boroughGeom;
+        let neighborhoodData;
+
+        fetch(neighborhoodUrl)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                else {
+                    throw new Error('Error: Failed to retrieve data.')
+                }
+            })
+            .then(geoJsonData => {
+                neighborhoodData = turf.featureCollection(geoJsonData);
+                // addBoroughsToMap(neighborhoodData);
+                neighborhoodData = parseNeighborhoodData(neighborhoodData);
+                createLegend(neighborhoodData);
+            })
+
+
+    </script>
+</body>
