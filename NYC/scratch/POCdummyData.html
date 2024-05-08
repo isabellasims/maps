@@ -2,16 +2,13 @@
 <html>
 
 <head>
-    <title>current</title>
-
+    <title>Utility</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"
         integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
-    <!-- dropdown arrow -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://unpkg.com/leaflet.featuregroup.subgroup@1.0.2/dist/leaflet.featuregroup.subgroup.js"></script>
     <script src="processData.js"></script>
     <style>
@@ -21,30 +18,13 @@
             position: relative;
         }
 
-        .pointer {
-            cursor: pointer;
+        .leaflet-control-layers {
+            background-color: pink;
         }
 
         .header {
             font-weight: bold;
             padding: 5px;
-        }
-
-        .neighborhoods {
-            display: none; /* Hidden by default */
-        }
-
-        .header.open + .neighborhoods {
-            display: block; /* Show when the header is open */
-        }
-
-        .zoom-icon {
-            font-size: 20px;
-            font-weight: 500;
-            color: #444545;
-            margin-right: 5px;
-            position: relative;
-            top: 2px;
         }
 
 
@@ -62,16 +42,12 @@
             border-radius: 5px;
             border: 2px solid #777;
             z-index: 1000;
-            overflow-y: auto;
-            max-height: calc(100vh - 100px);
-            width: 250px;
         }
 
         .line-item {
             padding-left: 5px;
             display: flex;
-            align-items: flex-start;
-            margin-bottom: 5px;
+            align-items: flex-end;
         }
     </style>
 </head>
@@ -92,17 +68,92 @@
         }).addTo(map);
 
         let neighborhoodUrl = 'https://data.cityofnewyork.us/resource/q2z5-ai38.json';
-        var legend = L.control({ position: 'topright' });
-        let legendData;
         initMap = async (url) => {
-            let rawGeoJSON = await fetchData(url);
-            legendData = parseNeighborhoodData(rawGeoJSON);
-            legend.addTo(map);
+            await fetchData(url);
         }
 
-        initMap(neighborhoodUrl);
+        let test = {};
+        test.layer = L.geoJson({
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [-73.99708, 40.75873],
+                                [-73.99708, 40.75488],
+                                [-73.98830, 40.75488],
+                                [-73.98830, 40.75873],
+                                [-73.99708, 40.75873]
+                            ]
+                        ]
+                    }
+                }
+            ]
+        });
+
+        test2 = {};
+        test2.layer = L.geoJson({
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "coordinates": [
+                            [
+                                [
+                                    -73.9763161773348,
+                                    40.76529429589104
+                                ],
+                                [
+                                    -73.9763161773348,
+                                    40.76358847766886
+                                ],
+                                [
+                                    -73.97511882363773,
+                                    40.76358847766886
+                                ],
+                                [
+                                    -73.97511882363773,
+                                    40.76529429589104
+                                ],
+                                [
+                                    -73.9763161773348,
+                                    40.76529429589104
+                                ]
+                            ]
+                        ],
+                        "type": "Polygon"
+                    }
+                }
+            ]
+        });
+        test.name = 'Test Zone';
+        test.checked = true;
+        test.layer.addTo(map);
+
+        test2.name = 'Test Zone 2';
+        test2.checked = true;
+        test2.layer.addTo(map);
+        let legendData = {};
+
+        legendData['Bronx'] = {
+            name: "Bronx",
+
+            neighborhoods: [test]
+        }
+        legendData['Queens'] = {
+            name: "Queens",
+
+            neighborhoods: [test, test2]
+        }
 
 
+        var legend = L.control({ position: 'topright' });
         legend.onAdd = function (map) {
             var legendDiv = L.DomUtil.create('div', 'legend');
             // add boro names
@@ -111,25 +162,18 @@
                 let boroName = boro.name;
 
                 // Create a header that is clickable
-
-                let header = L.DomUtil.create('div', 'header line-item', legendDiv);
+                let header = L.DomUtil.create('div', 'header', legendDiv);
                 header.innerHTML = '<b>' + boroName + '</b>';
-               // header.style.cursor = 'pointer'; // Make it look clickable
-                header.innerHTML = '<i class="material-icons pointer">arrow_right</i>' + '<b>' + boroName + '</b>';
-
-                let neighborhoodContainer = L.DomUtil.create('div', 'neighborhoods', legendDiv);
-
+                header.style.cursor = 'pointer'; // Make it look clickable
 
 
                 let neighborhoodArray = legendData[boroName].neighborhoods;
                 neighborhoodArray.forEach(hood => {
                     // Create a line item for each hood in each boro
-                    let lineItem = L.DomUtil.create('div', 'line-item', neighborhoodContainer);
-
-                    
-                    // CHECKBOX
-                    let checkbox = L.DomUtil.create('input', 'pointer', lineItem);
+                    let lineItem = L.DomUtil.create('div', 'line-item', legendDiv);
+                    let checkbox = L.DomUtil.create('input', '', lineItem);
                     checkbox.type = 'checkbox'; // Set the type to radio
+
                     checkbox.addEventListener('click', function () {
                         if (!hood.checked) {
                             map.addLayer(hood.layer);
@@ -139,43 +183,15 @@
                             hood.checked = false;
                         }
                     })
-                    
-                    // ZOOM ICON
-                    let zoomToIcon = L.DomUtil.create('i', 'material-icons zoom-icon pointer', lineItem);
-                    zoomToIcon.textContent = 'zoom_in';
-                    zoomToIcon.title = 'Zoom to this neighborhood';
-                    zoomToIcon.addEventListener('click', function () {
-                        map.fitBounds(hood.layer.getBounds());
-                        if (!checkbox.checked) {
-                            hood.checked = true;
-                            checkbox.checked = true;
-                            map.addLayer(hood.layer);
-                        }
-                    });
-
                     let label = L.DomUtil.create('label', '', lineItem);
-                    label.innerHTML = hood.neighborhoodName;
+                    label.innerHTML = hood.name;
                 })
-
-                // Add toggle behavior to the header
-                header.addEventListener('click', function () {
-                    let icon = header.querySelector('i');
-                 //   neighborhoodContainer.classList.toggle('open');
-                    header.classList.toggle('open');
-                    icon.textContent = icon.textContent === 'arrow_drop_down' ? 'arrow_right' : 'arrow_drop_down';
-                });
 
             }
 
-
-
-
             return legendDiv;
         };
-
-
-
-
+        legend.addTo(map);
     </script>
 </body>
 
