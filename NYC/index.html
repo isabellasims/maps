@@ -13,6 +13,7 @@
     <!-- dropdown arrow -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://unpkg.com/leaflet.featuregroup.subgroup@1.0.2/dist/leaflet.featuregroup.subgroup.js"></script>
+    <script src="classes.js"></script>
     <script src="processData.js"></script>
     <style>
         #map {
@@ -31,11 +32,13 @@
         }
 
         .neighborhoods {
-            display: none; /* Hidden by default */
+            display: none;
+            /* Hidden by default */
         }
 
-        .header.open + .neighborhoods {
-            display: block; /* Show when the header is open */
+        .header.open+.neighborhoods {
+            display: block;
+            /* Show when the header is open */
         }
 
         .zoom-icon {
@@ -73,6 +76,17 @@
             align-items: flex-start;
             margin-bottom: 5px;
         }
+
+        .show-hide-all-button {
+            margin-left: auto;
+            font-size: 10px;
+            background: #f0f0f0;
+            border: 1px solid #777;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 0 5px;
+            padding: 2px 4px;
+        }
     </style>
 </head>
 
@@ -109,24 +123,27 @@
             for (let key in legendData) {
                 let boro = legendData[key];
                 let boroName = boro.name;
+                let neighborhoodArray = legendData[boroName].neighborhoods;
 
-                // Create a header that is clickable
-
+                // BORO HEADERS 
                 let header = L.DomUtil.create('div', 'header line-item', legendDiv);
                 header.innerHTML = '<b>' + boroName + '</b>';
-               // header.style.cursor = 'pointer'; // Make it look clickable
                 header.innerHTML = '<i class="material-icons pointer">arrow_right</i>' + '<b>' + boroName + '</b>';
 
+                // SHOW ALL / HIDE ALL BUTTONS
+                showAllButton = L.DomUtil.create('button', 'show-hide-all-button', header);
+                showAllButton.innerHTML = 'Show All';
+
+
+
+
                 let neighborhoodContainer = L.DomUtil.create('div', 'neighborhoods', legendDiv);
-
-
-
-                let neighborhoodArray = legendData[boroName].neighborhoods;
+                // iterate through each boros list of neighborhood objects
                 neighborhoodArray.forEach(hood => {
                     // Create a line item for each hood in each boro
                     let lineItem = L.DomUtil.create('div', 'line-item', neighborhoodContainer);
 
-                    
+
                     // CHECKBOX
                     let checkbox = L.DomUtil.create('input', 'pointer', lineItem);
                     checkbox.type = 'checkbox'; // Set the type to radio
@@ -139,7 +156,7 @@
                             hood.checked = false;
                         }
                     })
-                    
+
                     // ZOOM ICON
                     let zoomToIcon = L.DomUtil.create('i', 'material-icons zoom-icon pointer', lineItem);
                     zoomToIcon.textContent = 'zoom_in';
@@ -160,12 +177,16 @@
                 // Add toggle behavior to the header
                 header.addEventListener('click', function () {
                     let icon = header.querySelector('i');
-                 //   neighborhoodContainer.classList.toggle('open');
+                    // neighborhoodContainer.classList.toggle('open');
                     header.classList.toggle('open');
                     icon.textContent = icon.textContent === 'arrow_drop_down' ? 'arrow_right' : 'arrow_drop_down';
                 });
 
             }
+
+
+
+
 
 
 
