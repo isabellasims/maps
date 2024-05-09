@@ -8,7 +8,7 @@ class Neighborhood {
 
     toggleLayer(map) {
         if(this.isChecked){
-            map.addLayer(this.layer);
+            map.addLayer(this.layer);          
         }else{
             map.removeLayer(this.layer);
         }
@@ -16,7 +16,7 @@ class Neighborhood {
 
     zoomToBounds(map) {
         map.fitBounds(this.layer.getBounds());
-        this.checked = true;
+        this.isChecked = true;
     }
 
     syncCheckbox(checkbox) {
@@ -36,19 +36,21 @@ class Borough {
         this.layerGroup.addLayer(neighborhood.layer);
     }
 
-    toggleAll(map, checked) {
-        if (checked) {
-            map.addLayer(this.layerGroup);
-        } else {
-            map.removeLayer(this.layerGroup);
-        }
+   
+
+    toggleAllLayers(map, container, on){
         this.neighborhoods.forEach(neighborhood => {
-            neighborhood.checked = checked;
+            neighborhood.isChecked = on;
             neighborhood.toggleLayer(map);
+        });            
+        const checkboxes = container.querySelectorAll('input[type=checkbox]');
+        checkboxes.forEach(checkbox=> {
+            checkbox.checked = on;
         });
+        
     }
 
-    syncCheckboxes(container, checked) {
+    syncCheckboxes(container, on) {
         const checkboxes = container.querySelectorAll('input[type=checkbox]');
         checkboxes.forEach((checkbox, index) => {
             const neighborhood = this.neighborhoods[index];
@@ -56,4 +58,14 @@ class Borough {
             neighborhood.syncCheckbox(checkbox);
         });
     }
+
+    toggleAndSync(map, container, showAll){
+        const checkboxes = container.querySelectorAll('input[type=checkbox]');
+        this.neighborhoods.forEach(neighborhood => {
+            neighborhood.isChecked = showAll;
+            neighborhood.toggleLayer(map);
+        })
+    }
+
+    
 }

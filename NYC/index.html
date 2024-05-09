@@ -130,13 +130,6 @@
                 header.innerHTML = '<b>' + boroName + '</b>';
                 header.innerHTML = '<i class="material-icons pointer">arrow_right</i>' + '<b>' + boroName + '</b>';
 
-                // SHOW ALL / HIDE ALL BUTTONS
-                showAllButton = L.DomUtil.create('button', 'show-hide-all-button', header);
-                showAllButton.innerHTML = 'Show All';
-
-
-
-
                 let neighborhoodContainer = L.DomUtil.create('div', 'neighborhoods', legendDiv);
                 // iterate through each boros list of neighborhood objects
                 neighborhoodArray.forEach(hood => {
@@ -148,13 +141,9 @@
                     let checkbox = L.DomUtil.create('input', 'pointer', lineItem);
                     checkbox.type = 'checkbox'; // Set the type to radio
                     checkbox.addEventListener('click', function () {
-                        if (!hood.checked) {
-                            map.addLayer(hood.layer);
-                            hood.checked = true;
-                        } else {
-                            map.removeLayer(hood.layer);
-                            hood.checked = false;
-                        }
+                        hood.isChecked = !hood.isChecked;
+                        hood.toggleLayer(map);
+                       
                     })
 
                     // ZOOM ICON
@@ -164,7 +153,7 @@
                     zoomToIcon.addEventListener('click', function () {
                         map.fitBounds(hood.layer.getBounds());
                         if (!checkbox.checked) {
-                            hood.checked = true;
+                            hood.isChecked = true;
                             checkbox.checked = true;
                             map.addLayer(hood.layer);
                         }
@@ -172,6 +161,19 @@
 
                     let label = L.DomUtil.create('label', '', lineItem);
                     label.innerHTML = hood.neighborhoodName;
+                })
+
+                // SHOW ALL / HIDE ALL BUTTONS
+                showAllButton = L.DomUtil.create('button', 'show-hide-all-button', header);
+                showAllButton.innerHTML = 'Show All';
+                showAllButton.addEventListener('click', () => {
+                    boro.toggleAllLayers(map, neighborhoodContainer, true);
+                })
+
+                hideAllButton = L.DomUtil.create('button', 'show-hide-all-button', header);
+                hideAllButton.innerHTML = 'Hide All';
+                hideAllButton.addEventListener('click', () => {
+                    boro.toggleAllLayers(map, neighborhoodContainer, false);
                 })
 
                 // Add toggle behavior to the header
