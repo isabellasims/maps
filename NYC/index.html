@@ -167,12 +167,14 @@
                 showAllButton = L.DomUtil.create('button', 'show-hide-all-button', header);
                 showAllButton.innerHTML = 'Show All';
                 showAllButton.addEventListener('click', () => {
+                    event.stopPropagation();
                     boro.toggleAllLayers(map, neighborhoodContainer, true);
                 })
 
                 hideAllButton = L.DomUtil.create('button', 'show-hide-all-button', header);
                 hideAllButton.innerHTML = 'Hide All';
                 hideAllButton.addEventListener('click', () => {
+                    event.stopPropagation();
                     boro.toggleAllLayers(map, neighborhoodContainer, false);
                 })
 
