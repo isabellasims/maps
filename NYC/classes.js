@@ -1,9 +1,12 @@
 class Neighborhood {
-    constructor(boroName, neighborhoodName, geometry) {
+    // if no pop, default to 1 to avoid divison by 0
+    constructor(boroName, neighborhoodName, geometry, population = 1) {
         this.boroName = boroName;
         this.neighborhoodName = neighborhoodName;
         this.layer = L.geoJson(geometry);
+        this.population = population;
         this.isChecked = false;
+        
     }
 
     toggleLayer(map) {

@@ -106,15 +106,18 @@
         }).addTo(map);
 
         let neighborhoodUrl = 'https://data.cityofnewyork.us/resource/q2z5-ai38.json';
+        let populationUrl = 'https://data.cityofnewyork.us/resource/swpk-hqdp.json';
         var legend = L.control({ position: 'topright' });
         let legendData;
-        initMap = async (url) => {
-            let rawGeoJSON = await fetchData(url);
-            legendData = parseNeighborhoodData(rawGeoJSON);
+        initMap = async (neighborhoodUrl, populationUrl) => {
+            let rawGeoJSON = await fetchData(neighborhoodUrl);
+            let featureCollection = turf.featureCollection(rawGeoJSON);
+            let rawPopData = await fetchData(populationUrl);
+            legendData = parseNeighborhoodData(featureCollection, rawPopData);
             legend.addTo(map);
         }
 
-        initMap(neighborhoodUrl);
+        initMap(neighborhoodUrl, populationUrl);
 
 
         legend.onAdd = function (map) {

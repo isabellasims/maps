@@ -2,21 +2,23 @@
 let finalData = {};
 
 
-parseNeighborhoodData = (neighborhoodData) => {
+parseNeighborhoodData = (neighborhoodData, populationData) => {
     let boroughs = {};
     neighborhoodData.features.forEach(feature => {
         let boroName = feature.boro_name;
         let neighborhoodName = feature.ntaname;
+        let neighborhoodCode = feature.ntacode;
         let geometry = feature.the_geom;
+
+        let population = populationData.find(hood => hood.nta_code == neighborhoodCode || hood.nta_name == neighborhoodName).population || 0;
+
         
         // create the boro key for each boro
         if (!boroughs[boroName]) {
             boroughs[boroName] = new Borough(boroName);
         }
-        let neighborhood = new Neighborhood(boroName, neighborhoodName, geometry);
-        boroughs[boroName].addNeighborhood(neighborhood);
-     
-       
+        let neighborhood = new Neighborhood(boroName, neighborhoodName, geometry, population);
+        boroughs[boroName].addNeighborhood(neighborhood);      
     })
     finalData = boroughs;
     return boroughs;
@@ -24,10 +26,25 @@ parseNeighborhoodData = (neighborhoodData) => {
 
 fetchData = async (url) => {
     try {
-        let response = await fetch(url);
+        let response = await fetch(url);    
         if(response.ok){
             let data = await response.json();
-            return turf.featureCollection(data);
+           return data;
+        }else{
+            alert('data api down, check back later');
+            throw new Error('Failed to retrieve neighborhood data');  
+        }
+    } catch (error) {
+        console.error('Error:', error.message);
+    } 
+}
+
+fetchPopulationData = async (url) => {
+    try {
+        let populationResponse = await fetch(populationUrl);
+        if(response.ok){
+            let data = await response.json();
+            return data;
         }else{
             alert('data api down, check back later');
             throw new Error('Failed to retrieve neighborhood data');  
